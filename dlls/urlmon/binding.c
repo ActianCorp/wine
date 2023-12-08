@@ -976,7 +976,9 @@ static Binding *get_bctx_binding(IBindCtx *bctx)
         return NULL;
 
     if (binding->lpVtbl != &BindingVtbl)
+    {
         return NULL;
+    }
     return impl_from_IBinding(binding);
 }
 
@@ -1560,6 +1562,7 @@ static HRESULT start_binding(IMoniker *mon, Binding *binding_ctx, IUri *uri, IBi
     HRESULT hres;
     MSG msg;
 
+
     hres = Binding_Create(mon, binding_ctx, uri, pbc, to_obj, riid, &binding);
     if(FAILED(hres))
         return hres;
@@ -1619,16 +1622,23 @@ HRESULT bind_to_storage(IUri *uri, IBindCtx *pbc, REFIID riid, void **ppv)
 
     hres = start_binding(NULL, binding_ctx, uri, pbc, FALSE, riid, &binding);
     if(binding_ctx)
+    {
         IBinding_Release(&binding_ctx->IBinding_iface);
+    }
     if(FAILED(hres))
+    {
         return hres;
+    }
 
     if(binding->hres == S_OK && binding->download_state != BEFORE_DOWNLOAD /* FIXME */) {
         if((binding->state & BINDING_STOPPED) && (binding->state & BINDING_LOCKED))
+        {
             IInternetProtocolEx_UnlockRequest(&binding->protocol->IInternetProtocolEx_iface);
+        }
 
         hres = binding->stgmed_obj->vtbl->get_result(binding->stgmed_obj, binding->bindf, ppv);
     }else if(binding->bindf & BINDF_ASYNCHRONOUS) {
+        
         hres = MK_S_ASYNCHRONOUS;
     }else {
         hres = FAILED(binding->hres) ? binding->hres : S_OK;

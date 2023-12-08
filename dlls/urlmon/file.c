@@ -318,7 +318,9 @@ static HRESULT WINAPI FileProtocol_StartEx(IInternetProtocolEx *iface, IUri *pUr
                 OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     }
     if(file_handle == INVALID_HANDLE_VALUE)
+    {
         return report_result(pOIProtSink, INET_E_RESOURCE_NOT_FOUND, GetLastError());
+    }   
 
     if(!GetFileSizeEx(file_handle, &file_size)) {
         CloseHandle(file_handle);

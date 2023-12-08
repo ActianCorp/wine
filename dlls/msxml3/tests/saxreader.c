@@ -2938,6 +2938,7 @@ static void test_saxreader_encoding(void)
         HANDLE file;
         HRESULT hr;
 
+        printf ("BRIGITTE test_saxreader_encoding 1) ***********************\n");
         hr = CoCreateInstance(entry->guid, NULL, CLSCTX_INPROC_SERVER, &IID_ISAXXMLReader, (void**)&reader);
         if (hr != S_OK)
         {
@@ -2946,6 +2947,7 @@ static void test_saxreader_encoding(void)
             continue;
         }
 
+        printf ("BRIGITTE test_saxreader_encoding 2) ***********************\n");
         file = CreateFileA(testXmlA, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
         ok(file != INVALID_HANDLE_VALUE, "Could not create file: %u\n", GetLastError());
         WriteFile(file, UTF8BOMTest, sizeof(UTF8BOMTest)-1, &written, NULL);
@@ -2955,7 +2957,8 @@ static void test_saxreader_encoding(void)
         todo_wine_if(entry->todo)
             ok(hr == entry->hr, "Expected 0x%08x, got 0x%08x. CLSID %s\n", entry->hr, hr, entry->clsid);
 
-        DeleteFileA(testXmlA);
+        printf ("BRIGITTE ***********************\n");
+        //DeleteFileA(testXmlA);
 
         /* try BSTR input with no BOM or '<?xml' instruction */
         V_VT(&input) = VT_BSTR;
@@ -6001,9 +6004,17 @@ static void test_mxwriter_indent(void)
     hr = IMXWriter_get_output(writer, &dest);
     ok(hr == S_OK, "got %08x\n", hr);
     ok(V_VT(&dest) == VT_BSTR, "got %d\n", V_VT(&dest));
+    printf ("BRIGITTE saxreader.c line 6007\n");
+    printf ("BRIGITTE expected: %S \n", L"<?xml version=\"1.0\" encoding=\"UTF-16\" standalone=\"no\"?>\r\n<a><b>\r\n\t\t<c/>\r\n\t</b>\r\n</a>");
+    printf ("BRIGITTE got: %s\n", wine_dbgstr_w(V_BSTR(&dest)));
+
     ok(!lstrcmpW(L"<?xml version=\"1.0\" encoding=\"UTF-16\" standalone=\"no\"?>\r\n<a><b>\r\n\t\t<c/>\r\n\t</b>\r\n</a>", V_BSTR(&dest)),
         "got wrong content %s\n", wine_dbgstr_w(V_BSTR(&dest)));
     VariantClear(&dest);
+    {
+        char str1[2];
+        scanf("%1s", str1);
+    }
 
     ISAXContentHandler_Release(content);
     IMXWriter_Release(writer);

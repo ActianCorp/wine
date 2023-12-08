@@ -342,6 +342,7 @@ static HRESULT write_output_buffer(mxwriter *writer, const WCHAR *data, int len)
     if (!len || !*data)
         return S_OK;
 
+    //printf ("DEBUG WINE mxwriter.c write_output_buffer %s\n", debugstr_w(data));
     src_len = len == -1 ? lstrlenW(data) : len;
     if (writer->dest)
     {
@@ -1381,7 +1382,8 @@ static HRESULT WINAPI SAXContentHandler_endElement(
         static const WCHAR closetagW[] = {'<','/'};
         static const WCHAR gtW[] = {'>'};
 
-        write_node_indent(This);
+        //printf ("DEBUG WINE mxwriter.c SAXContentHandler_endElement BRIGITTE COMENTED write_node_indent\n");
+        //write_node_indent(This);
         write_output_buffer(This, closetagW, 2);
         write_output_buffer(This, QName, nQName);
         write_output_buffer(This, gtW, 1);
@@ -1605,11 +1607,17 @@ static HRESULT WINAPI SAXLexicalHandler_startCDATA(ISAXLexicalHandler *iface)
     static const WCHAR scdataW[] = {'<','!','[','C','D','A','T','A','['};
     mxwriter *This = impl_from_ISAXLexicalHandler( iface );
 
+    //printf ("WINE DEBUG BRIGITTE SAXLexicalHandler_startCDATA start\n");
     TRACE("(%p)\n", This);
+
+    //without the close the export is missing a close bracket before CDATA see OR-5867
+    //printf ("WINE DEBUG BRIGITTE ADDED CLOSE.\n");
+    close_element_starttag(This);
 
     write_node_indent(This);
     write_output_buffer(This, scdataW, ARRAY_SIZE(scdataW));
     This->cdata = TRUE;
+    //printf ("WINE DEBUG BRIGITTE SAXLexicalHandler_startCDATA end\n");
 
     return S_OK;
 }

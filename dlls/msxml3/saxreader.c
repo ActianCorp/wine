@@ -2063,11 +2063,21 @@ static void libxml_cdatablock(void *ctx, const xmlChar *value, int len)
     }
 
     /* no newline chars (or last chunk) report as a whole */
-    if (!end && start == value)
+    //if (!end && start == value)
+    if (!end || start == value)
     {
+        /*
+        if (!end)
+        printf ("DEBUG WINE saxreader.c libxml_cdatablock !end\n");
+        if (start != value)
+        printf ("DEBUG WINE saxreader.c libxml_cdatablock BRIGITTE CHANGED THE TEST\n");
+        else
+        printf ("DEBUG WINE saxreader.c libxml_cdatablock  start == value\n");
+        */
         /* report */
         chars = bstr_from_xmlCharN(start, len-(start-value));
         TRACE("(%s)\n", debugstr_w(chars));
+        //printf ("DEBUG WINE saxreader.c: %s\n", debugstr_w(chars));
         hr = saxreader_saxcharacters(locator, chars);
         SysFreeString(chars);
     }
@@ -2737,14 +2747,24 @@ static HRESULT internal_parseURL(saxreader *reader, const WCHAR *url, BOOL vbInt
     TRACE("%p, %s.\n", reader, debugstr_w(url));
 
     if (!url && reader->version < MSXML4)
+    {
         return E_INVALIDARG;
+    }
 
     hr = create_moniker_from_url(url, &mon);
+    {
     if(FAILED(hr))
         return hr;
+    }
 
-    if(vbInterface) hr = bind_url(mon, internal_vbonDataAvailable, reader, &bsc);
-    else hr = bind_url(mon, internal_onDataAvailable, reader, &bsc);
+    if(vbInterface) 
+    {
+        hr = bind_url(mon, internal_vbonDataAvailable, reader, &bsc);
+    }
+    else 
+    {
+        hr = bind_url(mon, internal_onDataAvailable, reader, &bsc);
+    }
     IMoniker_Release(mon);
 
     if(FAILED(hr))

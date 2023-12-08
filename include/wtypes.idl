@@ -283,6 +283,7 @@ cpp_quote("#endif")
 
 /******************** BASIC COM/OLE TYPES ********************/
 
+cpp_quote("#ifndef OLE2ANSI")
 typedef WCHAR OLECHAR;
 typedef [string] OLECHAR *LPOLESTR;
 typedef [string] const OLECHAR *LPCOLESTR;
@@ -293,6 +294,13 @@ cpp_quote("# else")
 cpp_quote("#  define OLESTR(str) u##str")
 cpp_quote("# endif")
 cpp_quote("#endif")
+cpp_quote("#else /* !defined(OLE2ANSI) */")
+cpp_quote("#pragma message ( \"OLE2ANSI is defined!-----\" )")
+cpp_quote("typedef char OLECHAR;")
+cpp_quote("typedef LPSTR LPOLESTR;")
+cpp_quote("typedef LPCSTR LPCOLESTR;")
+cpp_quote("#define OLESTR(str) str")
+cpp_quote("#endif /* !defined(OLE2ANSI) */ ")
 
 typedef LONG SCODE;
 

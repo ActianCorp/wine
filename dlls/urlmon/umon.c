@@ -275,7 +275,9 @@ static HRESULT WINAPI URLMoniker_BindToStorage(IMoniker* iface, IBindCtx* pbc,
         FIXME("Unsupported pmkToLeft\n");
 
     if(!This->uri)
+    {
         return MK_E_SYNTAX;
+    }
 
     return bind_to_storage(This->uri, pbc, riid, ppvObject);
 }
