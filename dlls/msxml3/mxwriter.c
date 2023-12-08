@@ -633,7 +633,21 @@ static HRESULT write_data_to_stream(mxwriter *writer)
 static void close_element_starttag(mxwriter *writer)
 {
     static const WCHAR gtW[] = {'>'};
-    if (!writer->element) return;
+
+    if (!writer->element) 
+    {
+        return;
+    }
+    if (writer->cdata == TRUE) 
+    {
+          // We need this test here for OR-5905 because we added a call to close_element_starttag
+         // already for OR-5867
+         // Not doing so will generate for example
+         //      <![CDATA[>1]]></row>
+         // instead of
+         //      <![CDATA[1]]></row>
+        return;
+    }
     write_output_buffer(writer, gtW, 1);
 }
 
@@ -1607,17 +1621,14 @@ static HRESULT WINAPI SAXLexicalHandler_startCDATA(ISAXLexicalHandler *iface)
     static const WCHAR scdataW[] = {'<','!','[','C','D','A','T','A','['};
     mxwriter *This = impl_from_ISAXLexicalHandler( iface );
 
-    //printf ("WINE DEBUG BRIGITTE SAXLexicalHandler_startCDATA start\n");
     TRACE("(%p)\n", This);
 
     //without the close the export is missing a close bracket before CDATA see OR-5867
-    //printf ("WINE DEBUG BRIGITTE ADDED CLOSE.\n");
     close_element_starttag(This);
 
     write_node_indent(This);
     write_output_buffer(This, scdataW, ARRAY_SIZE(scdataW));
     This->cdata = TRUE;
-    //printf ("WINE DEBUG BRIGITTE SAXLexicalHandler_startCDATA end\n");
 
     return S_OK;
 }
