@@ -2344,7 +2344,21 @@ static void EDIT_SetRectNP(EDITSTATE *es, const RECT *rc)
 	ExStyle = GetWindowLongPtrW(es->hwndSelf, GWL_EXSTYLE);
 	
 	CopyRect(&es->format_rect, rc);
-	
+
+	//dupbr01 OR-7463
+	if (es->font)
+	{
+		TEXTMETRICW tm;
+		HDC dc;
+		HFONT old_font = 0;
+		dc = GetDC(es->hwndSelf);
+		old_font = SelectObject(dc, es->font);
+		GetTextMetricsW(dc, &tm);
+		SelectObject(dc, old_font);
+		ReleaseDC(es->hwndSelf, dc);
+		es->format_rect.bottom += tm.tmExternalLeading;
+
+	}
 	if (ExStyle & WS_EX_CLIENTEDGE) {
 		es->format_rect.left++;
 		es->format_rect.right--;
@@ -2364,8 +2378,14 @@ static void EDIT_SetRectNP(EDITSTATE *es, const RECT *rc)
                     InflateRect(&es->format_rect, 0, -bh);
 	}
 	
-	es->format_rect.left += es->left_margin;
-	es->format_rect.right -= es->right_margin;
+	/**** dupbr01 OR-6821 *****
+	** comment the code below otherwise when the user tab into the control
+	** the rectangle in which the user can enter data is reduced.
+	** FIXME: Need to see why this exactly why when the user tab out of the
+	** control, the data are moved to the right.
+	** es->format_rect.left += es->left_margin;
+	** es->format_rect.right -= es->right_margin;
+	**** dupbr01 OR-6821 *****/
 	EDIT_AdjustFormatRect(es);
 }
 
@@ -3860,7 +3880,8 @@ static void EDIT_WM_SetFont(EDITSTATE *es, HFONT font, BOOL redraw)
 	if (font)
 		old_font = SelectObject(dc, font);
 	GetTextMetricsW(dc, &tm);
-	es->line_height = tm.tmHeight;
+	// dupbr01 OR-7463 
+	es->line_height = tm.tmHeight + tm.tmExternalLeading;
 	es->char_width = tm.tmAveCharWidth;
 	margins = get_font_margins(dc, &tm, es->is_unicode);
 	if (font)
@@ -4715,7 +4736,12 @@ LRESULT EditWndProc_common( HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, B
 		break;
 
 	case EM_SETRECTNP:
-		if ((es->style & ES_MULTILINE) && lParam)
+//dupbr01 OR-7492
+/*
+** Now that in OpenROAD we do not use ES_MULTILINE for single line
+** EntryFields we cannot ignore this message for non ES_MULTILNE edit control
+*/
+		if (lParam)
 			EDIT_SetRectNP(es, (LPRECT)lParam);
 		break;
 
